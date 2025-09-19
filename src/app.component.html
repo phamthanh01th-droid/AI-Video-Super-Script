@@ -1,0 +1,261 @@
+<!-- Main container -->
+<div class="bg-gray-900 text-gray-200 min-h-screen font-sans">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Header -->
+    <header class="text-center mb-10">
+      <h1 class="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">AI Video Super Script</h1>
+      <p class="mt-3 text-lg text-gray-400">by Ken</p>
+    </header>
+
+    <!-- API Key Management -->
+    <section class="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-6 mb-8">
+        <h2 class="text-xl font-bold text-cyan-400 mb-4">API Key Management</h2>
+        <div class="flex flex-col md:flex-row gap-4 mb-4">
+            <form [formGroup]="apiKeyForm" (ngSubmit)="addApiKey()" class="flex-grow flex gap-2">
+                <input formControlName="newKey" type="password" placeholder="Enter your Google Gemini API Key" class="flex-grow bg-gray-900 border border-gray-600 rounded-lg shadow-sm focus:ring-cyan-500 focus:border-cyan-500 transition p-3 text-base">
+                <button type="submit" [disabled]="apiKeyForm.invalid" class="bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-lg transition">Add Key</button>
+            </form>
+        </div>
+        @if (apiKeys().length > 0) {
+            <div class="space-y-2">
+                <h3 class="text-sm font-medium text-gray-400">Saved Keys:</h3>
+                @for(key of apiKeys(); track key; let i = $index) {
+                    <div class="flex items-center justify-between bg-gray-700 p-2 rounded-md">
+                        <span class="font-mono text-gray-300">key...{{ key.slice(-4) }}</span>
+                        <button (click)="removeApiKey(i)" class="text-red-400 hover:text-red-300 p-1" title="Remove Key">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>
+                }
+            </div>
+        } @else {
+            <p class="text-center text-gray-500 text-sm">No API keys added. Your keys are stored in session storage and will be cleared when you close the tab.</p>
+        }
+    </section>
+
+    <!-- Form Section -->
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl shadow-2xl p-8 mb-12">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+        
+        <!-- Theme Input -->
+        <div class="md:col-span-2">
+          <label for="theme" class="block text-sm font-medium text-gray-300 mb-2">Chủ đề kịch bản (Script Theme)</label>
+          <textarea id="theme" formControlName="theme" rows="3" class="w-full bg-gray-900 border border-gray-600 rounded-lg shadow-sm focus:ring-cyan-500 focus:border-cyan-500 transition p-3 text-base" placeholder="Enter your core idea..."></textarea>
+        </div>
+
+        <!-- Visual & Image Style -->
+        <div>
+          <label for="visualStyle" class="block text-sm font-medium text-gray-300 mb-2">Phong cách Video (Visual Style)</label>
+          <select id="visualStyle" formControlName="visualStyle" class="w-full bg-gray-700 border border-gray-600 rounded-lg shadow-sm focus:ring-cyan-500 focus:border-cyan-500 transition p-3">
+            @for(style of visualStyles; track style) {
+              <option [value]="style">{{ style }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label for="imageStyle" class="block text-sm font-medium text-gray-300 mb-2">Phong cách Ảnh (Image Style)</label>
+          <select id="imageStyle" formControlName="imageStyle" class="w-full bg-gray-700 border border-gray-600 rounded-lg shadow-sm focus:ring-cyan-500 focus:border-cyan-500 transition p-3">
+            @for(style of imageStyles; track style) {
+              <option [value]="style">{{ style }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Writing Style & Language -->
+        <div>
+          <label for="writingStyle" class="block text-sm font-medium text-gray-300 mb-2">Văn phong (Writing Style)</label>
+          <select id="writingStyle" formControlName="writingStyle" class="w-full bg-gray-700 border border-gray-600 rounded-lg shadow-sm focus:ring-cyan-500 focus:border-cyan-500 transition p-3">
+            @for(style of writingStyleKeys(); track style) {
+              <option [value]="style">{{ style }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label for="language" class="block text-sm font-medium text-gray-300 mb-2">Ngôn ngữ (Language)</label>
+          <select id="language" formControlName="language" class="w-full bg-gray-700 border border-gray-600 rounded-lg shadow-sm focus:ring-cyan-500 focus:border-cyan-500 transition p-3">
+            @for(lang of languageKeys(); track lang) {
+              <option [value]="lang">{{ lang }}</option>
+            }
+          </select>
+        </div>
+        
+        <!-- Duration Slider -->
+        <div class="md:col-span-2">
+            <label for="duration" class="block text-sm font-medium text-gray-300 mb-2">
+                Thời lượng (Duration): {{ form.get('duration')?.value }} giây
+            </label>
+            <input id="duration" formControlName="duration" type="range" min="90" max="480" step="15" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+        </div>
+
+        <!-- Aspect Ratio -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-300 mb-2">Định dạng (Aspect Ratio)</label>
+          <div class="flex gap-4">
+            @for(ratio of aspectRatios; track ratio) {
+              <label class="flex items-center p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700 transition" [class.bg-cyan-500]="form.get('aspectRatio')?.value === ratio">
+                <input type="radio" formControlName="aspectRatio" [value]="ratio" class="hidden">
+                <span class="font-mono">{{ ratio }}</span>
+              </label>
+            }
+          </div>
+        </div>
+        
+        <!-- Submit Button -->
+        <div class="md:col-span-2 mt-4">
+          <button type="submit" [disabled]="!canSubmit()" 
+                  class="w-full py-4 px-8 text-xl font-semibold text-white rounded-lg focus:outline-none focus:ring-4 focus:ring-cyan-500/50 disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95 transition-all duration-300 ease-in-out
+                  {{ onCooldown() ? 'bg-gray-600' : 'bg-gradient-to-r from-cyan-400 to-purple-500 shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-400/40 hover:scale-[1.03]' }}">
+            <span class="flex items-center justify-center gap-3">
+                @switch (generationState()) {
+                @case ('idle') { 
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v1h-1.414a1 1 0 00-.707.293L10.5 7.586l-1.879-1.88a1 1 0 00-.707-.293H6V4zM4 6v10a2 2 0 002 2h8a2 2 0 002-2V6h-2v10H6V6H4z" /></svg>
+                    <span>Tạo (Create)</span> 
+                }
+                @case ('loading') { <span><i class="animate-spin">&#9203;</i> Đang xử lý (Processing)...</span> }
+                @case ('success') { 
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.885-.666A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566z" clip-rule="evenodd" /></svg>
+                    <span>Tạo lại (Create Again)</span> 
+                }
+                @case ('error') { 
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.636-1.214 2.27-1.214 2.906 0l4.318 8.216c.636 1.214-.241 2.685-1.638 2.685H5.161c-1.397 0-2.274-1.471-1.638-2.685l4.318-8.216zM9 11a1 1 0 112 0v1a1 1 0 11-2 0v-1zm1-4a1 1 0 00-1 1v2a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                    <span>Thử lại (Retry)</span> 
+                }
+                @case ('cooldown') { 
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.414-1.414L11 9.586V6z" clip-rule="evenodd" /></svg>
+                    <span>Vui lòng chờ (Please wait) {{ cooldownSeconds() }}s</span> 
+                }
+                }
+            </span>
+          </button>
+        </div>
+      </div>
+    </form>
+    
+    <!-- Results Section -->
+    <section class="results-section space-y-8">
+      @switch (generationState()) {
+        @case ('loading') {
+          <div class="text-center p-8 bg-gray-800 rounded-lg animate-pulse">
+            <p class="text-lg text-cyan-400">"Bộ não" AI đang hoạt động... ("Brain" AI is working...)</p>
+          </div>
+        }
+        @case ('success') {
+          @if (aiResponse(); as response) {
+            <div class="space-y-8">
+              <!-- Promotion Content -->
+              <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+                <h2 class="text-2xl font-bold mb-4 text-cyan-400">Nội Dung Quảng Bá (Promotion Content)</h2>
+                 <!-- Thumbnail Prompt -->
+                <div class="mb-4">
+                    <h3 class="font-semibold text-gray-300 mb-1">Thumbnail Prompt</h3>
+                    <div class="flex items-center gap-2 p-3 bg-gray-900 rounded-md">
+                        <p class="flex-grow font-mono text-sm text-gray-400">{{ response.promotion.thumbnail_prompt }}</p>
+                        <button (click)="copyToClipboard(response.promotion.thumbnail_prompt)" class="p-1 text-gray-400 hover:text-white transition" title="Copy"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></button>
+                    </div>
+                </div>
+
+                <div class="flex border-b border-gray-600 mb-4">
+                  <button (click)="activePromotionTab.set('youtube')" class="py-2 px-4 font-medium" [class.text-cyan-400]="activePromotionTab() === 'youtube'" [class.border-b-2]="activePromotionTab() === 'youtube'" [class.border-cyan-400]="activePromotionTab() === 'youtube'">YouTube</button>
+                  <button (click)="activePromotionTab.set('facebook')" class="py-2 px-4 font-medium" [class.text-cyan-400]="activePromotionTab() === 'facebook'" [class.border-b-2]="activePromotionTab() === 'facebook'" [class.border-cyan-400]="activePromotionTab() === 'facebook'">Facebook</button>
+                  <button (click)="activePromotionTab.set('tiktok')" class="py-2 px-4 font-medium" [class.text-cyan-400]="activePromotionTab() === 'tiktok'" [class.border-b-2]="activePromotionTab() === 'tiktok'" [class.border-cyan-400]="activePromotionTab() === 'tiktok'">TikTok</button>
+                </div>
+                @if (response.promotion.social_media_posts[activePromotionTab()]; as post) {
+                  <div class="space-y-3">
+                    <p><strong>Title:</strong> {{ post.title }}</p>
+                    <p><strong>Description:</strong> {{ post.description }}</p>
+                    <p><strong>Hashtags:</strong> <span class="text-cyan-300">{{ post.hashtags }}</span></p>
+                  </div>
+                }
+              </div>
+
+              <!-- Character Sheet -->
+              <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+                <h2 class="text-2xl font-bold mb-4 text-cyan-400">Bảng Phân Vai (Character Sheet)</h2>
+                <div class="space-y-4">
+                  @for(char of response.character_sheet; track char.character_id) {
+                    <div>
+                      <h3 class="font-bold text-purple-400">{{ char.character_id }}</h3>
+                      <p>{{ char.description }}</p>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Script -->
+              <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-cyan-400">Kịch Bản Chi Tiết (Detailed Script)</h2>
+                    <button (click)="downloadSrt()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition">Download .SRT</button>
+                </div>
+                <div class="flex border-b border-gray-600 mb-4">
+                  @for(scene of response.script; track scene.scene_number) {
+                    <button (click)="activeSceneTab.set(scene.scene_number)" class="py-2 px-4 font-medium" [class.text-cyan-400]="activeSceneTab() === scene.scene_number" [class.border-b-2]="activeSceneTab() === scene.scene_number" [class.border-cyan-400]="activeSceneTab() === scene.scene_number">Scene {{ scene.scene_number }}</button>
+                  }
+                </div>
+                @for(scene of response.script; track scene.scene_number) {
+                  @if (activeSceneTab() === scene.scene_number) {
+                    <div class="space-y-6">
+                      <h3 class="text-xl font-bold">{{ scene.scene_title }}</h3>
+                      <div class="text-sm space-y-2 text-gray-400">
+                        <p><strong>Narration & Dialogue:</strong></p>
+                        @for (clip of scene.clip_sequence; track $index) {
+                            @if(clip.narration_clip) { <p class="pl-4"><em>{{ clip.narration_clip }}</em></p> }
+                            @if(clip.dialogue.line) { <p class="pl-4"><strong>{{clip.dialogue.character}}:</strong> {{ clip.dialogue.line }}</p> }
+                        }
+                      </div>
+
+                      <!-- JSON Carousel -->
+                      <div class="relative">
+                        <div class="flex overflow-x-auto space-x-4 pb-4 -mb-4 snap-x snap-mandatory">
+                          @for (clip of scene.clip_sequence; track $index) {
+                            <div class="snap-start flex-shrink-0 w-64 h-48 bg-gray-900 rounded-lg p-4 border border-gray-700 group relative flex flex-col justify-between">
+                              <div>
+                                <h4 class="font-bold text-gray-300">Clip {{ $index + 1 }}</h4>
+                                <p class="text-sm text-gray-400 mt-2 truncate"><strong>Action:</strong> {{ clip.visual_details.action }}</p>
+                                <p class="text-sm text-gray-400 truncate"><strong>Camera:</strong> {{ clip.shot.camera_motion }}</p>
+                              </div>
+                              <button (click)="showJsonModal(clip, scene.scene_number, $index)" class="mt-2 text-center w-full bg-gray-700 hover:bg-gray-600 text-cyan-400 py-1 rounded-md text-sm font-semibold">View JSON</button>
+                              <button (click)="copyToClipboard(JSON.stringify(clip, null, 2))" class="absolute top-2 right-2 p-1 bg-gray-700 rounded-full text-gray-400 opacity-0 group-hover:opacity-100 hover:text-white transition-opacity" title="Copy JSON">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                              </button>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+        }
+        @case ('error') {
+          <div class="text-center p-8 bg-red-900/50 border border-red-700 rounded-lg">
+            <h2 class="text-xl font-bold mb-2">Generation Failed</h2>
+            <p>{{ errorMessage() }}</p>
+          </div>
+        }
+      }
+    </section>
+  </main>
+
+  <!-- JSON Viewer Modal -->
+  @if (jsonModal().visible) {
+    <div class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" (click)="closeJsonModal()">
+      <div class="bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col" (click)="$event.stopPropagation()">
+        <header class="flex justify-between items-center p-4 border-b border-gray-700">
+          <h3 class="text-lg font-semibold">{{ jsonModal().title }}</h3>
+          <div class="flex gap-2">
+            <button (click)="copyToClipboard(jsonModal().content)" class="p-1 text-gray-400 hover:text-white transition" title="Copy JSON">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+            </button>
+            <button (click)="closeJsonModal()" class="p-1 text-gray-400 hover:text-white transition" title="Close">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </header>
+        <pre class="overflow-auto p-4 text-sm bg-gray-900 flex-grow rounded-b-lg"><code class="language-json">{{ jsonModal().content }}</code></pre>
+      </div>
+    </div>
+  }
+</div>

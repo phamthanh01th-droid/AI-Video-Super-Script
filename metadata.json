@@ -1,0 +1,5 @@
+{
+  "name": "AI Video Super Script",
+  "description": "An intelligent web application that transforms a user's theme into a complete video production package, including scripts, character sheets, and promotional content, using the Google Gemini API.",
+  "requestFramePermissions": []
+}
